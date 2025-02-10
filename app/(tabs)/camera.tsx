@@ -10,10 +10,10 @@ import { Image } from "expo-image";
 import { AntDesign } from "@expo/vector-icons";
 import { Feather } from "@expo/vector-icons";
 import { FontAwesome6 } from "@expo/vector-icons";
-import * as FileSystem from 'expo-file-system';
+
 import * as MediaLibrary from 'expo-media-library';
 
-export default function App() {
+export default function CameraScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const ref = useRef<CameraView>(null);
   const [uri, setUri] = useState<string | null>(null);

@@ -1,7 +1,8 @@
 import React from 'react';
-import { StyleSheet, Text, View,Pressable } from 'react-native';
+import { StyleSheet, Text, View, Pressable, ProgressBarAndroidBase } from 'react-native';
 import { Link } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { AnimatedCircularProgress } from 'react-native-circular-progress';
 
 const HomePage = () => {
 
@@ -20,15 +21,25 @@ const HomePage = () => {
                     <Text style={styles.cardTitle}>User Information</Text>
                     <Text style={styles.userInfo}>Name: {userData.name}</Text>
                 </LinearGradient>
-                <LinearGradient colors={['#a1c4fd', '#c2e9fb']} style={styles.card}>
-                    <Text style={styles.cardTitle}>Email</Text>
-                    <Text style={styles.userInfo}>
-                        {userData.email ? userData.email : 'No email provided'}
-                    </Text>
-                </LinearGradient>
+                <View style={styles.separator}>
+                </View>
                 <LinearGradient colors={['#fbc2eb', '#a6c1ee']} style={styles.card}>
+                    <View style={styles.calories}>
                     <Text style={styles.cardTitle}>Calories Today</Text>
                     <Text style={styles.userInfo}>{userData.caloriesToday}</Text>
+                    </View>
+                    <View style={styles.progressBar}>
+                        
+                        <AnimatedCircularProgress
+                            size={120}
+                            width={15}
+                            fill={100}
+                            tintColor="#00e0ff"
+                            duration={2000}
+                            lineCap='round'
+                            onAnimationComplete={() => console.log('onAnimationComplete')}
+                            backgroundColor="#3d5875" />
+                    </View>
                 </LinearGradient>
             </View>
             <Pressable style={styles.button} >
@@ -43,7 +54,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'flex-start',
         alignItems: 'baseline',
-        backgroundColor: 'rgb(59, 58, 58)', 
+        backgroundColor: 'rgb(59, 58, 58)',
         padding: 20,
     },
     title: {
@@ -51,6 +62,25 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 20,
         color: 'white',
+    },
+    calories: {
+        
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    separator: {
+        width: '100%',
+        height: 5,
+        display: 'flex',
+        marginVertical: 10,
+        borderBottomColor: '#FBFBFB' ,
+        borderBottomWidth: 5,
+    },
+    progressBar:{
+        flexDirection: 'row',
+        justifyContent: 'center',
+        
     },
     button: {
         backgroundColor: '#FFD700', // Gold color
@@ -74,7 +104,7 @@ const styles = StyleSheet.create({
         padding: 20,
         marginVertical: 10,
         borderRadius: 10,
-        alignItems: 'flex-start',
+        alignItems: 'stretch',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
