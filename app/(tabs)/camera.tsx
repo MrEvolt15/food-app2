@@ -12,6 +12,7 @@ import { Feather } from "@expo/vector-icons";
 import { FontAwesome6 } from "@expo/vector-icons";
 
 import * as MediaLibrary from 'expo-media-library';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function CameraScreen() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -20,6 +21,7 @@ export default function CameraScreen() {
   const [mode, setMode] = useState<CameraMode>("picture");
   const [facing, setFacing] = useState<CameraType>("back");
   const [recording, setRecording] = useState(false);
+
 
   if (!permission) {
     return null;
@@ -38,13 +40,22 @@ export default function CameraScreen() {
 
   const takePicture = async () => {
     const photo = await ref.current?.takePictureAsync();
-    setUri(photo?.uri);
-
-    // Save the photo to the camera roll
     if (photo?.uri) {
-      //
       await MediaLibrary.createAssetAsync(photo.uri);
       alert("Foto guardada en la galería 📸");
+
+      // Obtener las URIs existentes
+      const existingUris = await AsyncStorage.getItem('photoUris');
+      const uris = existingUris ? JSON.parse(existingUris) : [];
+
+      // Agregar la nueva URI
+      uris.push(photo.uri);
+
+      // Guardar el array actualizado en AsyncStorage
+      await AsyncStorage.setItem('photoUris', JSON.stringify(uris));
+
+      // Actualizar el estado
+      setUri(uris);
     }
   };
 
@@ -69,7 +80,7 @@ export default function CameraScreen() {
 
   const renderPicture = () => {
     return (
-      <View>
+      <View style={styles.container}>
         <Image
           source={{ uri }}
           contentFit="contain"
