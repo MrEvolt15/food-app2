@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'https://162d-34-169-150-36.ngrok-free.app/predict';
+const API_URL = 'https://api-9kq9.onrender.com/predict';
 
 export const predictFruit = async (imageUri) => {
   try {

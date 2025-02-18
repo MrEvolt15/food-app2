@@ -57,14 +57,14 @@ const CameraScreen = () => {
       // Obtener la predicción de la fruta
       try {
         const result = await predictFruit(photo.uri);
-        if (result.probability < 0.39) {
+        if (result.probability < 0.40) {
           setPrediction('noFruta');
         }
         setPrediction(result.prediction);
 
 
         // Obtener el usuario actual
-        if (user) {
+        if (user&& result.probability > 0.40) {
           insertPrediccion(usuario.id, result.prediction, result.probability);
           console.log('Predicción guardada en la base de datos');
         }
@@ -78,12 +78,12 @@ const CameraScreen = () => {
         // Actualizar el estado
         setUri(photo.uri);
 
-        if (result.probability < 0.39) {
-          Alert.alert(`Predicción: No es una Fruta`, `Probabilidad: menor al umbral`, [{ text: 'OK', onPress: () => router.push('/home') }]);
+        if (result.probability < 0.40) {
+          Alert.alert(`Predicción: No es una Fruta`, 'Probabilidad: menor al umbral', [{ text: 'OK', onPress: () => router.push('/home') }]);
         }
-        Alert.alert(`Predicción: ${result.prediction}`, `Probabilidad: ${result.probability}`, [{ text: 'OK', onPress: () => router.push('/home') }]);
+        Alert.alert(`Predicción: ${result.prediction}`, `Probabilidad: ${result.probability.toFixed(2)}`, [{ text: 'OK', onPress: () => router.push('/home') }]);
       } catch (error) {
-        alert('Error al predecir la fruta');
+        Alert.alert('Error al predecir la fruta', '', [{ text: 'OK', onPress: () => router.push('/home') }]);
         console.error(error);
       }
     }

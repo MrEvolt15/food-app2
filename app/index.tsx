@@ -12,16 +12,21 @@ const HomePage = () => {
     const { login } = useAuth();
     
 
-    const handleLogin = () => {
-        console.log(username);
-        const user =  getUserByName(username) as { name: string, password: string };
-        // Aquí puedes agregar la lógica de autenticación
-        if (username === user.name && password === user.password) {
-            login(user.name);
-            Alert.alert('Login Successful', 'Welcome to the app!', [{ onPress: () => router.push('/home') }]);
-        } else {
-            console.log(user);
-            Alert.alert('Login Failed', 'Invalid username or password');
+    const handleLogin = async () => {
+        try {
+            console.log(username);
+            const user = await getUserByName(username);
+            // Aquí puedes agregar la lógica de autenticación
+            if (username === user.name && password === user.password) {
+                login(user.name);
+                Alert.alert('Login Successful', 'Welcome to the app!', [{ onPress: () => router.push('/home') }]);
+            } else {
+                console.log(user);
+                Alert.alert('Login Failed', 'Invalid username or password');
+            }
+        } catch (error) {
+            console.error(error);
+            Alert.alert('Error', 'Revise sus credenciales o registrese');
         }
     };
 

@@ -28,8 +28,16 @@ const HomePage = () => {
             if (user) {
                 const usuario = getUserByName(user) as { id: number, name: string, caloriesToday: number };
                 const predicciones = getPrediccionesByUserId(usuario.id) as { id: number, prediction: string, probability: number }[];
-                
-
+                let totalCalories = userData.caloriesToday;
+                for (const prediccion of userData.predicciones) {
+                    console.log(prediccion.prediccion);
+                    const foodItem = foodData.find(food => food.name === prediccion.prediccion);
+                    if (foodItem) {
+                        totalCalories += foodItem.calories;
+                    }
+                }
+                console.log(userData.id);
+                updateUserCalories(userData.id, totalCalories);
                 setUserData({
                     id: usuario.id,
                     name: usuario.name,
@@ -49,16 +57,7 @@ const HomePage = () => {
             setPhotoData(JSON.parse(data));
         }
     };
-    let totalCalories = userData.caloriesToday;
-    for (const prediccion of userData.predicciones) {
-        console.log(prediccion.prediccion);
-        const foodItem = foodData.find(food => food.name === prediccion.prediccion);
-        if (foodItem) {
-            totalCalories += foodItem.calories;
-        }
-    }
-    console.log(userData.id);
-    updateUserCalories(userData.id, totalCalories);
+    
     useFocusEffect(
         useCallback(() => {
             fetchPhotoData();
