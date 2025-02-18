@@ -18,6 +18,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({ imagePath, title,subtitle 
     { name: 'Naranja', calories: 47 },
     { name: 'Piña', calories: 50 },
     { name: 'Sandía', calories: 30 },
+    { name: 'noFruta', calories: 0 },
   ];
   return (
     <LinearGradient

@@ -20,6 +20,7 @@ const HomePage = () => {
         { name: 'Naranja', calories: 47 },
         { name: 'Piña', calories: 50 },
         { name: 'Sandía', calories: 30 },
+        { name: 'noFruta', calories: 0 },
     ];
 
     useEffect(() => {
