@@ -1,29 +1,66 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { Link, useFocusEffect } from 'expo-router';
-import React, { useEffect, useState, useCallback } from 'react';
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View, Image } from 'react-native';
+import { useFocusEffect } from 'expo-router';
+import React, { useState, useCallback,  useEffect } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import StatsCard from '../../components/statsCard';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from '../../context/AuthContext';
+import { getUserByName, getPrediccionesByUserId,updateUserCalories } from '../../utils/database';
 
 const HomePage = () => {
-    const [photoUris, setPhotoUris] = useState<string[]>([]);
+    const [photoData, setPhotoData] = useState([]);
+    const { user } = useAuth();
+    const [userData, setUserData] = useState({id:0, name: '', caloriesToday: 0, predicciones: [] });
 
-    // Datos quemados del usuario
-    const userData = {
-        name: 'Joel Espinosa',
-        caloriesToday: 1500,
-    };
+    const foodData = [
+        { name: 'Banana', calories: 89 },
+        { name: 'Fresa', calories: 32 },
+        { name: 'Mango', calories: 60 },
+        { name: 'Manzana', calories: 52 },
+        { name: 'Naranja', calories: 47 },
+        { name: 'Piña', calories: 50 },
+        { name: 'Sandía', calories: 30 },
+    ];
 
-    const fetchPhotoUris = async () => {
-        const uris = await AsyncStorage.getItem('photoUris');
-        if (uris) {
-            setPhotoUris(JSON.parse(uris));
+    useEffect(() => {
+        const fetchUserData = () => {
+            if (user) {
+                const usuario = getUserByName(user) as { id: number, name: string, caloriesToday: number };
+                const predicciones = getPrediccionesByUserId(usuario.id) as { id: number, prediction: string, probability: number }[];
+                
+
+                setUserData({
+                    id: usuario.id,
+                    name: usuario.name,
+                    caloriesToday: usuario.caloriesToday,
+                    predicciones: predicciones,
+
+                });
+            }
+        };
+
+        fetchUserData();
+    }, [user]);
+
+    const fetchPhotoData = async () => {
+        const data = await AsyncStorage.getItem('photoData');
+        if (data) {
+            setPhotoData(JSON.parse(data));
         }
     };
-
+    let totalCalories = userData.caloriesToday;
+    for (const prediccion of userData.predicciones) {
+        console.log(prediccion.prediccion);
+        const foodItem = foodData.find(food => food.name === prediccion.prediccion);
+        if (foodItem) {
+            totalCalories += foodItem.calories;
+        }
+    }
+    console.log(userData.id);
+    updateUserCalories(userData.id, totalCalories);
     useFocusEffect(
         useCallback(() => {
-            fetchPhotoUris();
+            fetchPhotoData();
         }, [])
     );
 
@@ -33,15 +70,14 @@ const HomePage = () => {
                 <Text style={styles.title}>Bienvenido, {userData.name}!</Text>
                 <View style={styles.dashboard}>
                     <LinearGradient colors={['#FFA500', '#FF4500']} style={styles.card}>
-                        <Text style={styles.cardTitle}>User Information</Text>
-                        <Text style={styles.userInfo}>Name: {userData.name}</Text>
+                        <Text style={styles.cardTitle}>Información del Usuario</Text>
+                        <Text style={styles.userInfo}>Nombre: {userData.name}</Text>
                         <Text style={styles.userInfo}>Calorias Total: {userData.caloriesToday}</Text>
                     </LinearGradient>
-                    <View style={styles.separator}>
-                    </View>
-                    <StatsCard imagePath={require('../../assets/icon.png')} />
-                    {photoUris.map((uri, index) => (
-                        <StatsCard key={index} imagePath={{ uri }} />
+                    <View style={styles.separator}></View>
+                    {photoData.map((data, index) => (
+                        console.log(data),
+                        <StatsCard key={index} imagePath={{ uri: data.uri }} title={data.prediction} subtitle={data.probability} />
                     ))}
                 </View>
             </View>
@@ -59,7 +95,7 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         justifyContent: 'flex-start',
-            },
+    },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
@@ -73,7 +109,6 @@ const styles = StyleSheet.create({
     separator: {
         width: '100%',
         height: 5,
-        
         marginVertical: 10,
         borderBottomColor: '#FBFBFB',
         borderBottomWidth: 5,

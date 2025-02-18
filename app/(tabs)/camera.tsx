@@ -1,3 +1,4 @@
+import { AntDesign, Feather, FontAwesome6 } from "@expo/vector-icons";
 import {
   CameraMode,
   CameraType,
@@ -5,23 +6,30 @@ import {
   useCameraPermissions,
 } from "expo-camera";
 import { useRef, useState } from "react";
-import { Button, Pressable, StyleSheet, Text, View } from "react-native";
-import { Image } from "expo-image";
-import { AntDesign } from "@expo/vector-icons";
-import { Feather } from "@expo/vector-icons";
-import { FontAwesome6 } from "@expo/vector-icons";
-
-import * as MediaLibrary from 'expo-media-library';
+import { Button, Pressable, StyleSheet, Text, View, Alert } from "react-native";
+import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as MediaLibrary from 'expo-media-library';
+import { predictFruit } from '../../client/frutas';
+import { getUserByName, insertPrediccion } from '../../utils/database';
+import { useAuth } from "../../context/AuthContext";
 
-export default function CameraScreen() {
+
+const CameraScreen = () => {
   const [permission, requestPermission] = useCameraPermissions();
   const ref = useRef<CameraView>(null);
   const [uri, setUri] = useState<string | null>(null);
   const [mode, setMode] = useState<CameraMode>("picture");
   const [facing, setFacing] = useState<CameraType>("back");
   const [recording, setRecording] = useState(false);
-
+  const router = useRouter();
+  const [prediction, setPrediction] = useState<string | null>(null);
+  const { user } = useAuth();
+  if (!user) {
+    // Handle the case where user is null
+    return null;
+  }
+  const usuario = getUserByName(user)as {id:number, name: string, password: string };
 
   if (!permission) {
     return null;
@@ -31,7 +39,7 @@ export default function CameraScreen() {
     return (
       <View style={styles.container}>
         <Text style={{ textAlign: "center" }}>
-          We need your permission to use the camera
+          Necesitamos tus permisos para usar la camara
         </Text>
         <Button onPress={requestPermission} title="Grant permission" />
       </View>
@@ -42,20 +50,35 @@ export default function CameraScreen() {
     const photo = await ref.current?.takePictureAsync();
     if (photo?.uri) {
       await MediaLibrary.createAssetAsync(photo.uri);
-      alert("Foto guardada en la galería 📸");
-
       // Obtener las URIs existentes
-      const existingUris = await AsyncStorage.getItem('photoUris');
-      const uris = existingUris ? JSON.parse(existingUris) : [];
+      const existingData = await AsyncStorage.getItem('photoData');
+      const photoData = existingData ? JSON.parse(existingData) : [];
 
-      // Agregar la nueva URI
-      uris.push(photo.uri);
+      // Obtener la predicción de la fruta
+      try {
+        const result = await predictFruit(photo.uri);
+        setPrediction(result.prediction);
 
-      // Guardar el array actualizado en AsyncStorage
-      await AsyncStorage.setItem('photoUris', JSON.stringify(uris));
+        // Obtener el usuario actual
+        if (user) {
+          await insertPrediccion(usuario.id, result.prediction, result.probability);
+          console.log('Predicción guardada en la base de datos');
+        }
 
-      // Actualizar el estado
-      setUri(uris);
+        // Agregar la nueva URI y predicción
+        photoData.push({ uri: photo.uri, prediction: result.prediction, probability: result.probability });
+
+        // Guardar el array actualizado en AsyncStorage
+        await AsyncStorage.setItem('photoData', JSON.stringify(photoData));
+
+        // Actualizar el estado
+        setUri(photo.uri);
+
+        Alert.alert(`Predicción: ${result.prediction}`, `Probabilidad: ${result.probability}`, [{ text: 'OK', onPress: () => router.push('/home') }]);
+      } catch (error) {
+        alert('Error al predecir la fruta');
+        console.error(error);
+      }
     }
   };
 
@@ -77,71 +100,49 @@ export default function CameraScreen() {
   const toggleFacing = () => {
     setFacing((prev) => (prev === "back" ? "front" : "back"));
   };
-
-  const renderPicture = () => {
-    return (
-      <View style={styles.container}>
-        <Image
-          source={{ uri }}
-          contentFit="contain"
-          style={{ width: 300, aspectRatio: 1 }}
-        />
-        <Button onPress={() => setUri(null)} title="Take another picture" />
-      </View>
-    );
-  };
-
-  const renderCamera = () => {
-    return (
-      <CameraView
-        style={styles.camera}
-        ref={ref}
-        mode={mode}
-        facing={facing}
-        mute={false}
-        responsiveOrientationWhenOrientationLocked
-      >
-        <View style={styles.shutterContainer}>
-          <Pressable onPress={toggleMode}>
-            {mode === "picture" ? (
-              <AntDesign name="picture" size={32} color="white" />
-            ) : (
-              <Feather name="video" size={32} color="white" />
-            )}
-          </Pressable>
-          <Pressable onPress={mode === "picture" ? takePicture : recordVideo}>
-            {({ pressed }) => (
+  return (
+    <CameraView
+      style={styles.camera}
+      ref={ref}
+      mode={mode}
+      facing={facing}
+      mute={false}
+      responsiveOrientationWhenOrientationLocked
+    >
+      <View style={styles.shutterContainer}>
+        <Pressable onPress={toggleMode}>
+          {mode === "picture" ? (
+            <AntDesign name="picture" size={32} color="white" />
+          ) : (
+            <Feather name="video" size={32} color="white" />
+          )}
+        </Pressable>
+        <Pressable onPress={mode === "picture" ? takePicture : recordVideo}>
+          {({ pressed }) => (
+            <View
+              style={[
+                styles.shutterBtn,
+                {
+                  opacity: pressed ? 0.5 : 1,
+                },
+              ]}
+            >
               <View
                 style={[
-                  styles.shutterBtn,
+                  styles.shutterBtnInner,
                   {
-                    opacity: pressed ? 0.5 : 1,
+                    backgroundColor: mode === "picture" ? "white" : "red",
                   },
                 ]}
-              >
-                <View
-                  style={[
-                    styles.shutterBtnInner,
-                    {
-                      backgroundColor: mode === "picture" ? "white" : "red",
-                    },
-                  ]}
-                />
-              </View>
-            )}
-          </Pressable>
-          <Pressable onPress={toggleFacing}>
-            <FontAwesome6 name="rotate-left" size={32} color="white" />
-          </Pressable>
-        </View>
-      </CameraView>
-    );
-  };
-
-  return (
-    <View style={styles.container}>
-      {uri ? renderPicture() : renderCamera()}
-    </View>
+              />
+            </View>
+          )}
+        </Pressable>
+        <Pressable onPress={toggleFacing}>
+          <FontAwesome6 name="rotate-left" size={32} color="white" />
+        </Pressable>
+      </View>
+    </CameraView>
   );
 }
 
@@ -182,3 +183,4 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
 });
+export default CameraScreen;

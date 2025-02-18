@@ -3,6 +3,7 @@ import { Link, Tabs } from 'expo-router';
 import { Pressable, Text, StyleSheet } from 'react-native';
 
 import type { NavigationProp } from '@react-navigation/native';
+import { AuthProvider } from "../../context/AuthContext";
 
 const HeaderButton = ({ navigation }: { navigation: NavigationProp<any> }) => (
   <Pressable style={styles.button} >
@@ -13,6 +14,7 @@ const HeaderButton = ({ navigation }: { navigation: NavigationProp<any> }) => (
 
 export default function TabLayout() {
   return (
+  
     <Tabs
       screenOptions={({ navigation }) => ({
         tabBarActiveTintColor: '#ffd33d',
@@ -48,15 +50,9 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="camera" color={color} />,
         }}
       />
-      <Tabs.Screen
-        name="live"
-        options={{
-          title: 'Live',
-          headerShown: true,
-          tabBarIcon: ({ color }) => <FontAwesome size={28} name="video-camera" color={color} />,
-        }}
-      />
+      
     </Tabs>
+ 
   );
 }
 

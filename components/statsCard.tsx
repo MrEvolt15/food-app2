@@ -6,8 +6,19 @@ import { useState } from "react";
 
 interface StatsCardProps {
   imagePath: ImageSourcePropType;
+  title: string;
+  subtitle: number;
 }
-export const StatsCard: React.FC<StatsCardProps> = ({ imagePath }) => {
+export const StatsCard: React.FC<StatsCardProps> = ({ imagePath, title,subtitle }) => {
+  const foodData = [
+    { name: 'Banana', calories: 89 },
+    { name: 'Fresa', calories: 32 },
+    { name: 'Mango', calories: 60 },
+    { name: 'Manzana', calories: 52 },
+    { name: 'Naranja', calories: 47 },
+    { name: 'Piña', calories: 50 },
+    { name: 'Sandía', calories: 30 },
+  ];
   return (
     <LinearGradient
       colors={["#F97316", "#EA580C"]} // orange-500 to orange-600
@@ -18,7 +29,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({ imagePath }) => {
         <View style={styles.stepsContainer}>
           <View style={styles.stepsContent}>
             <Image style={styles.stepsCount} source={imagePath}/>
-            <Text style={styles.stepsLabel}>Manzana</Text>
+            <Text style={styles.stepsLabel}>{title}</Text>
           </View>
           {/* Calories */}
           <View style={styles.statColumn}>
@@ -28,7 +39,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({ imagePath }) => {
               <AnimatedCircularProgress
             size={64}
             width={5}
-            fill={64}
+            fill={subtitle.toFixed(2)*100}
             arcSweepAngle={240}
             tintColor="#00e0ff"
             duration={2000}
@@ -39,8 +50,8 @@ export const StatsCard: React.FC<StatsCardProps> = ({ imagePath }) => {
           />
               </View>
               <View style={styles.caloriesText}>
-                <Text style={styles.statValue}>0.0</Text>
-                <Text style={styles.statLabel}>Calor (kcal)</Text>
+                <Text style={styles.statValue}>{subtitle.toFixed(2)}</Text>
+                <Text style={styles.statLabel}>Probabilidad</Text>
               </View>
             </View>
           </View>
@@ -52,17 +63,12 @@ export const StatsCard: React.FC<StatsCardProps> = ({ imagePath }) => {
         <View style={styles.statsGrid}>
           {/* Steps Goal */}
           <View style={styles.statColumn}>
-            <Text style={styles.statValue}>6000</Text>
-            <Text style={styles.statLabel}>Calorias por porcion en la mesa</Text>
+            <Text style={styles.statValue}>
+              {foodData.find(food => food.name === title)?.calories || 'N/A'}
+            </Text>
+            <Text style={styles.statLabel}>Calorias por porcion</Text>
           </View>
 
-          {/* Distance */}
-          <View style={styles.statColumn}>
-            <Text style={styles.statValue}>0.0</Text>
-            <Text style={styles.statLabel}>Algun dato mas</Text>
-          </View>
-
-          
         </View>
       </View>
     </LinearGradient>

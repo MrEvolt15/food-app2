@@ -1,59 +1,72 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, Pressable, Alert, Image } from 'react-native';
+import React, { useState, createContext,useContext } from 'react';
+import { StyleSheet, Text, View, TextInput, Pressable, Alert, Image, ScrollView } from 'react-native';
 import { Link } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { getUserByName } from '../utils/database';
+import { useAuth } from "../context/AuthContext";
 
 const HomePage = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const router = useRouter();
+    const { login } = useAuth();
+    
 
     const handleLogin = () => {
+        console.log(username);
+        const user =  getUserByName(username) as { name: string, password: string };
         // Aquí puedes agregar la lógica de autenticación
-        if (username === 'admin' && password === 'password') {
-            Alert.alert('Login Successful', 'Welcome to the app!');
+        if (username === user.name && password === user.password) {
+            login(user.name);
+            Alert.alert('Login Successful', 'Welcome to the app!', [{ onPress: () => router.push('/home') }]);
         } else {
+            console.log(user);
             Alert.alert('Login Failed', 'Invalid username or password');
         }
     };
 
     return (
-        <SafeAreaView style={{ flex: 1 }}>
-        < View style = { styles.container } >
-            <Image source={require('../assets/icon.png')} style={{
-                marginBottom: 20,
-            }}/>
-            <Text style={styles.title}>Bienvenido a la app de Detección de Comidas</Text>
-            <Text style={styles.subtitle}>Por favor, inicia sesión</Text>
-            <TextInput
-                style={styles.input}
-                placeholder="Nombre de usuario"
-                value={username}
-                onChangeText={setUsername}
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="Contraseña"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-            />
-            <Pressable style={styles.button} onPress={handleLogin}>
-                <Text style={styles.buttonText}>Login</Text>
-            </Pressable>
-            <Pressable style={styles.link}>
-                <Link replace href="/home">Ir a la página principal</Link>
-            </Pressable>
-        </View >
-        </SafeAreaView>
+  
+            <View style={styles.container}>
+                <ScrollView contentContainerStyle={styles.scrollContainer}>
+                    <Image source={require('../assets/icon.png')} style={{ marginBottom: 20 }} />
+                    <Text style={styles.title}>Bienvenido !!</Text>
+                    <Text style={styles.subtitle}>Por favor, inicia sesión</Text>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Nombre de usuario"
+                        value={username}
+                        onChangeText={setUsername}
+                    />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Contraseña"
+                        value={password}
+                        onChangeText={setPassword}
+                        secureTextEntry
+                    />
+                    <Pressable style={styles.button} onPress={handleLogin}>
+                        <Text style={styles.buttonText}>Login</Text>
+                    </Pressable>
+                    <Pressable style={styles.button}>
+                        <Link replace href="/register" style={styles.buttonText}>Registrar</Link>
+                    </Pressable>
+                </ScrollView>
+            </View>
+ 
     );
 };
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: 'rgb(59, 58, 58)',
+    },
+    scrollContainer: {
+        flexGrow: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgb(59, 58, 58)',
+        padding: 20,
     },
     title: {
         fontSize: 24,
@@ -77,6 +90,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFD700',
         padding: 10,
         borderRadius: 5,
+        marginBottom: 10,
     },
     buttonText: {
         color: 'black',
